@@ -15,6 +15,7 @@
 # 			 /usr/bin/yum, /usr/bin/dnf,  /usr/bin/zypper, \
 # 			 /usr/bin/pacman
 Defaults!/usr/bin/visudo env_keep += "SUDO_EDITOR EDITOR VISUAL"
+Defaults env_keep += "XDG_RUNTIME_DIR WAYLAND_DISPLAY"
 Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/bin"
 Defaults passwd_timeout=0
 Defaults timestamp_type=global
