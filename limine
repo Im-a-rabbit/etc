@@ -1,25 +1,12 @@
-KERNEL_CMDLINE[default]+=rw root=UUID=<root_partition_UUID>
-KERNEL_CMDLINE[default]+=quiet splash
-
 ENABLE_VERIFICATION=yes
+#ENABLE_ENROLL_LIMINE_CONFIG=no
 
-### Kernel Entries Order
-### Wildcard "*" matches any letter in kernel entry name
-### If ENABLE_SORT is set to "yes", only wildcard "*" entries are sorted alphabetically.
+TIMEOUT=1
 BOOT_ORDER="*, Windows*, Memtest, *fallback"
 ENABLE_SORT=yes
 FIND_BOOTLOADERS=yes
 
 QUIET_MODE=yes
 
-#ENABLE_ENROLL_LIMINE_CONFIG=no
-
 ENABLE_UKI=yes
 CUSTOM_UKI_NAME="arch"
-
-
-### mkinitcpio UKI Build Options
-### Additional options for mkinitcpio UKI builds
-### See: https://man.archlinux.org/man/mkinitcpio.8.en#OPTIONS_FOR_UNIFIED_KERNEL_IMAGE
-### Example: Add a splash screen
-#MKINITCPIO_UKI_OPTIONS="--splash /usr/share/systemd/bootctl/splash-arch.bmp"
