@@ -1,12 +1,10 @@
 ENABLE_VERIFICATION=yes
 #ENABLE_ENROLL_LIMINE_CONFIG=no
 
-TIMEOUT=1
 BOOT_ORDER="*, Windows*, Memtest, *fallback"
 ENABLE_SORT=yes
 FIND_BOOTLOADERS=yes
 
-QUIET_MODE=yes
-
 ENABLE_UKI=yes
 CUSTOM_UKI_NAME="arch"
+#MKINITCPIO_UKI_OPTIONS="--splash /usr/share/systemd/bootctl/splash-arch.bmp"
