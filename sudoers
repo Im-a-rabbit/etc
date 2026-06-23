@@ -1,4 +1,4 @@
 Defaults env_keep += "XDG_RUNTIME_DIR WAYLAND_DISPLAY"
 Defaults insults
 #Defaults passwd_timeout=0
-#Defaults timestamp_type=global 
+#Defaults timestamp_type=global
