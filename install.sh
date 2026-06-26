@@ -95,17 +95,14 @@ echo "$USERNAME:$USER_PASS" | chpasswd
 echo "%wheel ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 # клонирование и копирование конфигов
-su "$USERNAME" -c "
-cd
-git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc
-cd etc
-sudo install -m 440 10-defaults /etc/sudoers.d/
-sudo install -m 644 mkinitcpio.conf /etc/
-sudo install -m 644 linux-zen.preset /etc/mkinitcpio.d/
-sudo install -m 644 pacman.conf /etc/
-sudo install -m 644 makepkg.conf /etc/
-sudo install -m 644 network/* /etc/systemd/network/
-"
+su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc"
+mv /home/"$USERNAME"/etc/10-defaults /etc/sudoers.d/ && chmod 440 /etc/sudoers.d/10-defaults
+mv /home/"$USERNAME"/etc/mkinitcpio.conf /etc/
+mv /home/"$USERNAME"/etc/linux-zen.preset /etc/mkinitcpio.d/
+mv /home/"$USERNAME"/etc/pacman.conf /etc/
+mv /home/"$USERNAME"/etc/makepkg.conf /etc/
+mv /home/"$USERNAME"/etc/network/* /etc/systemd/network/
+
 
 # правка makepkg.conf, если архитектура не raptorlake
 if [ "$MARCH" != "raptorlake" ]; then
