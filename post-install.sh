@@ -98,7 +98,7 @@ if [[ "$SETUP_BT" =~ ^[Yy]$ ]]; then
     sudo systemctl enable --now bluetooth
 
     mkdir -p ~/.config/systemd/user
-    cp ~/etc/pipewire-bluetooth-autoconnect.service ~/.config/systemd/user/
+    mv ~/etc/pipewire-bluetooth-autoconnect.service ~/.config/systemd/user/
     systemctl --user enable pipewire-bluetooth-autoconnect.service
     sudo systemctl enable bluetooth-autoconnect.service
 fi
@@ -121,6 +121,7 @@ if [[ "$SETUP_NVIDIA" =~ ^[Yy]$ ]]; then
     echo "Настройка драйверов NVIDIA..."
     yay -S --noconfirm nvidia-open-dkms
     sudo install -m 644 ~/etc/nvidia.conf /etc/modprobe.d/
+		rm ~/etc/nvidia.conf
     sudo sed -i '1s/^#//' /etc/mkinitcpio.conf
     sudo sed -i '2d' /etc/mkinitcpio.conf
     sudo mkinitcpio -P
@@ -130,6 +131,7 @@ if [[ "$SETUP_INTEL" =~ ^[Yy]$ ]]; then
     echo "Настройка Intel‑undervolt и power‑profiles..."
     yay -S --noconfirm intel-undervolt power-profiles-daemon python-gobject
     sudo install -m 644 ~/etc/intel-undervolt.conf /etc/
+		rm ~/etc/intel-undervolt.conf
     sudo systemctl enable intel-undervolt.service
     echo "Используйте powerprofilesctl set power-saver|balanced|performance"
 		echo "Измените лимиты питания по желанию в /etc/intel-undervolt.conf"
@@ -140,6 +142,7 @@ if [[ "$SETUP_LIMINE" =~ ^[Yy]$ ]]; then
     echo "Установка Limine..."
     yay -S --noconfirm limine-mkinitcpio-hook
     sudo install -m 644 ~/etc/limine /etc/default/limine
+		rm ~/etc/limine
 
     if [[ "$ADD_WIN" =~ ^[Yy]$ ]]; then
         sudo limine-scan
