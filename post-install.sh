@@ -90,7 +90,7 @@ systemctl --user enable pipewire-pulse.service
 # ---------- Брандмауэр ----------
 echo "Настройка брандмауэра..."
 sudo ufw enable
-echo "Открывать порты можно так: sudo ufw allow 25565/tcp comment 'minecraft." >> "$NOTES"
+echo -e "\tОткрывать порты можно так: sudo ufw allow 25565/tcp comment 'minecraft'\n" >> "$NOTES"
 
 # ---------- Bluetooth ----------
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
@@ -108,7 +108,7 @@ fi
 if [[ ! "$SET_ROOT" =~ ^[Nn]$ ]]; then
     echo "Блокировка root-пароля..."
     sudo passwd -l root
-    echo "Чтобы разблокировать root используйте sudo passwd -u root" >> "$NOTES"
+    echo -e "\tЧтобы разблокировать root, используйте: sudo passwd -u root\n" >> "$NOTES"
 fi
 
 # ---------- Secure Boot ----------
@@ -134,9 +134,9 @@ if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
     yay -S --needed --noconfirm intel-undervolt power-profiles-daemon python-gobject
     sudo install -m 644 ~/etc/intel-undervolt.conf /etc/
     sudo systemctl enable intel-undervolt.service
-    echo "Используйте powerprofilesctl get, чтобы узнать текущий профиль." >> "$NOTES"
-    echo "powerprofilesctl set power-saver|balanced|performance, чтобы выставить." >> "$NOTES"
-	echo "Измените лимиты питания по желанию в /etc/intel-undervolt.conf" >> "$NOTES"
+    echo -e "\tИспользуйте powerprofilesctl get, чтобы узнать текущий профиль." >> "$NOTES"
+    echo -e "\tpowerprofilesctl set power-saver|balanced|performance, чтобы выставить.\n" >> "$NOTES"
+	echo -e "\tИзменить лимиты питания можно в /etc/intel-undervolt.conf\n" >> "$NOTES"
 fi
 
 # ---------- Загрузчик Limine и мультисистемность ----------
@@ -153,8 +153,8 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
         yay -S --needed --noconfirm memtest86+-efi
         sudo limine-entry-tool --add-efi Memtest /boot/memtest86+/memtest.efi
     fi
-	echo "Можете удалить ненужную запись efibootmgr, если создавали до этого: sudo efibootmgr -Bb <номер>" >> "$NOTES"
-    echo "Не забудьте настроить /boot/limine.conf" >> "$NOTES"
+	echo -e "\tМожете удалить ненужную запись efibootmgr, если создавали до этого: sudo efibootmgr -Bb <номер>\n" >> "$NOTES"
+    echo -e "\tНе забудьте настроить /boot/limine.conf\n" >> "$NOTES"
 fi
 
 # ---------- Отключение пищалки ----------
@@ -173,7 +173,7 @@ fi
 # ---------- Русские man-страницы ----------
 if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
     yay -S --needed --noconfirm man-pages-ru
-    echo -e "Используйте man с названием нужной статьи, если знаете его, \nman -k для поиска совпадений в названии \nи man -K для поиска внутри статей." >> "$NOTES"
+    echo -e "\tИспользуйте man с названием нужной статьи, если знаете его, \n\tman -k для поиска совпадений в названии \n\tи man -K для поиска внутри статей.\n" >> "$NOTES"
 fi
 
 # ---------- Полезные TUI/CLI утилиты ----------
@@ -185,7 +185,7 @@ yay -S --needed --noconfirm \
     brightnessctl ddcutil mpv \
     v4l2loopback-dkms amneziawg-dkms amneziawg-tools
 
-echo "Список установленных пакетов можно найти в моей инструкции" >> "$NOTES"
+echo -e "\tСписок установленных пакетов можно найти в моей инструкции\n" >> "$NOTES"
 
 # ---------- fish как основной шелл ----------
 echo "Настройка fish..."
@@ -213,7 +213,7 @@ if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
     cd ~/.dotfiles
     rm -rf ~/.config/fish
     stow -vS btop fastfetch fish nvim
-    echo "Подробности конфигураций можно узнать в моей инструкции" >> "$NOTES"
+    echo -e "\tПодробности конфигураций можно узнать в моей инструкции.\n" >> "$NOTES"
 fi
 
 # ---------- Завершение ----------
