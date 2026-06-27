@@ -90,6 +90,7 @@ systemctl --user enable pipewire-pulse.service
 # ---------- Брандмауэр ----------
 echo "Настройка брандмауэра..."
 sudo ufw enable
+echo "Открывать порты можно так: sudo ufw allow 25565/tcp comment 'minecraft." >> "$NOTES"
 
 # ---------- Bluetooth ----------
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
@@ -135,7 +136,8 @@ if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
     sudo install -m 644 ~/etc/intel-undervolt.conf /etc/
 	rm ~/etc/intel-undervolt.conf
     sudo systemctl enable intel-undervolt.service
-    echo "Используйте powerprofilesctl set power-saver|balanced|performance" >> "$NOTES"
+    echo "Используйте powerprofilesctl get, чтобы узнать текущий профиль." >> "$NOTES"
+    echo "powerprofilesctl set power-saver|balanced|performance, чтобы выставить." >> "$NOTES"
 	echo "Измените лимиты питания по желанию в /etc/intel-undervolt.conf" >> "$NOTES"
 fi
 
@@ -174,7 +176,7 @@ fi
 # ---------- Русские man-страницы ----------
 if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
     yay -S --noconfirm man-pages-ru
-    echo "Используйте man -k" >> "$NOTES"
+    echo -e "Используйте man с названием нужной статьи, если знаете его, \nman -k для поиска совпадений в названии \nи man -K для поиска внутри статей." >> "$NOTES"
 fi
 
 # ---------- Полезные TUI/CLI утилиты ----------
