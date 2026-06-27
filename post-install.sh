@@ -56,6 +56,7 @@ fi
 
 # ---------- Вопросы ----------
 read -p "Отключить пищалку (bell-style none в /etc/inputrc)? (Y/n): " SET_BELL
+read -p "Отключить watchdog? (Y/n): " SET_WATCHDOG
 read -p "Установить русские man-страницы (man-pages-ru)? (Y/n): " SET_MAN_RU
 read -p "Git email: " GIT_EMAIL
 read -p "Git имя: " GIT_NAME
@@ -156,6 +157,13 @@ fi
 if [[ ! "$SET_BELL" =~ ^[Nn]$ ]]; then
     sudo sed -i 's/^# set bell-style none/set bell-style none/' /etc/inputrc
     echo "Пищалка отключена в /etc/inputrc"
+fi
+
+# ---------- Watchdog ----------
+if [[ ! "$SET_WATCHDOG" =~ ^[Nn]$ ]]; then
+    echo "Отключение watchdog..."
+    sudo sed -i 's/^.*RebootWatchdogSec=.*/RebootWatchdogSec=0/' /etc/systemd/system.conf
+    echo "RebootWatchdogSec установлен в 0."
 fi
 
 # ---------- Русские man-страницы ----------
