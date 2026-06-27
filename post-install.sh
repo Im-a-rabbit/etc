@@ -16,7 +16,7 @@ if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]] && [ ! -f ~/etc/pipewire-bluetooth-autoconnect.
     exit 1
 fi
 
-read -p "Установить Limine и настроить dual‑boot? (Y/n): " SETUP_LIMINE
+read -p "Установить Limine и настроить dual-boot? (Y/n): " SETUP_LIMINE
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
     read -p "  Найти и добавить Windows в меню Limine? (Y/n): " ADD_WIN
     read -p "  Установить Memtest86+? (Y/n): " ADD_MEMTEST
@@ -34,7 +34,7 @@ if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]] && [ ! -f ~/etc/nvidia.conf ]; then
     exit 1
 fi
 
-read -p "Настроить Intel‑undervolt и power‑profiles? (Y/n): " SETUP_INTEL
+read -p "Настроить Intel-undervolt и power-profiles? (Y/n): " SETUP_INTEL
 if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]] && [ ! -f ~/etc/intel-undervolt.conf ]; then
     echo "Ошибка: ~/etc/intel-undervolt.conf не найден."
     echo "Склонируйте репозиторий конфигов: git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc ~/etc"
