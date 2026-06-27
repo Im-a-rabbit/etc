@@ -44,13 +44,9 @@ fi
 # ---------- Проверка Secure Boot Setup Mode ----------
 read -p "Настроить Secure Boot? (Y/n): " SETUP_SB
 if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
-    SETUP_MODE_FILE=$(ls /sys/firmware/efi/efivars/SetupMode-* 2>/dev/null | head -1)
-    if [ -z "$SETUP_MODE_FILE" ]; then
-        echo "Ошибка: не удалось найти переменную SetupMode. Убедитесь, что система загружена в UEFI."
-        exit 1
-    fi
-    read -r -n 1 setup_byte < "$SETUP_MODE_FILE"
-    if [ "$setup_byte" != $'\x01' ]; then
+    echo "Проверка статуса Secure Boot..."
+    sudo pacman -S --needed --noconfirm sbctl
+    if ! sbctl status | grep -q "Setup Mode:.*Enabled"; then
         echo "Ошибка: Secure Boot Setup Mode не активен."
         echo "Включите его в BIOS (обычно 'Setup Mode' или 'Clear Secure Boot Keys') и перезапустите скрипт."
         exit 1
@@ -110,7 +106,6 @@ sudo passwd -l root
 # ---------- Secure Boot (опционально) ----------
 if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
     echo "Настройка Secure Boot..."
-    yay -S --noconfirm sbctl
     sudo sbctl create-keys
     sudo sbctl enroll-keys -m
     sudo mkinitcpio -P
