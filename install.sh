@@ -2,7 +2,7 @@
 set -e
 setfont ter-u32b
 
-# ---------- проверки монтирования ----------
+# ---------- монтирование ----------
 if mountpoint -q /mnt; then
     echo "Ошибка: /mnt занят. Освободите /mnt и перезапустите скрипт."
     exit 1
@@ -11,11 +11,16 @@ if mountpoint -q /mnt/boot; then
     echo "Ошибка: /mnt/boot занят. Освободите /mnt/boot и перезапустите."
     exit 1
 fi
-
-# ---------- вопросы ----------
 read -p "ESP-раздел (например /dev/nvme0n1p1): " ESP
 read -p "Swap-раздел (пусто, если не нужен): " SWAP
 read -p "Корневой раздел (например /dev/nvme0n1p3): " ROOT
+mount "$ROOT" /mnt
+mount -m "$ESP" /mnt/boot
+if [ -n "$SWAP" ]; then
+		swapon "$SWAP"
+fi
+
+# ---------- вопросы ----------
 read -p "Имя компьютера: " HOSTNAME
 read -p "Имя пользователя: " USERNAME
 echo "Пароль root:"
@@ -56,13 +61,6 @@ select march_choice in "raptorlake" "native" "x86-64-v3" "x86-64-v4" "custom"; d
     esac
 done
 
-# ---------- монтирование ----------
-mount "$ROOT" /mnt
-mount -m "$ESP" /mnt/boot
-if [ -n "$SWAP" ]; then
-		swapon "$SWAP"
-fi
-
 # ---------- установка пакетов ----------
 reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
 sed -i 's/^.*ParallelDownloads.*/ParallelDownloads = 15/' /etc/pacman.conf
@@ -80,9 +78,8 @@ cat > /mnt/root/setup-chroot.sh << 'EOF'
 set -e
 
 # время
-hwclock --systohc
 timedatectl set-timezone "$TIMEZONE"
-timedatectl set-ntp true
+hwclock --systohc
 
 # локаль
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
@@ -169,6 +166,9 @@ fi
 # ------ замена resolv.conf на ссылку ------
 ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf
 
+# ---------- размонтирование ----------
+umount -R /mnt
+
 echo
 echo "=== Установка завершена ==="
-echo "Выйдите из chroot (exit), размонтируйте (umount -R /mnt) и перезагрузитесь (reboot)."
+echo "Перезагрузитесь (reboot) и запустите ~/etc/post-install.sh для завершения установки."
