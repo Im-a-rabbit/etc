@@ -3,12 +3,12 @@ set -e
 setfont ter-u32b
 
 # ---------- проверки монтирования ----------
-if ! mountpoint -q /mnt; then
-    echo "Ошибка: /mnt не примонтирован. Примонтируйте корень Arch и перезапустите скрипт."
+if mountpoint -q /mnt; then
+    echo "Ошибка: /mnt занят. Освободите /mnt и перезапустите скрипт."
     exit 1
 fi
-if ! mountpoint -q /mnt/boot; then
-    echo "Ошибка: /mnt/boot не примонтирован (ESP). Примонтируйте ESP и перезапустите."
+if mountpoint -q /mnt/boot; then
+    echo "Ошибка: /mnt/boot занят. Освободите /mnt/boot и перезапустите."
     exit 1
 fi
 
@@ -55,6 +55,13 @@ select march_choice in "raptorlake" "native" "x86-64-v3" "x86-64-v4" "custom"; d
         *)      MARCH=$march_choice; break;;
     esac
 done
+
+# ---------- монтирование ----------
+mount "$ROOT" /mnt
+mount -m "$ESP" /mnt/boot
+if [ -n "$SWAP"]; then
+		swapon "$SWAP"
+fi
 
 # ---------- установка пакетов ----------
 reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
