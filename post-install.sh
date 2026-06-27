@@ -219,5 +219,5 @@ echo
 echo "=== Советы по дальнейшей настройке ==="
 cat "$NOTES"
 echo
-echo "=== Post‑install завершён ==="
+echo "=== Post-install завершён ==="
 echo "Приятной работы!"
