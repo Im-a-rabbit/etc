@@ -15,7 +15,7 @@ read -p "ESP-раздел (например /dev/nvme0n1p1): " ESP
 read -p "Swap-раздел (пусто, если не нужен): " SWAP
 read -p "Корневой раздел (например /dev/nvme0n1p3): " ROOT
 mount "$ROOT" /mnt
-mount -m "$ESP" /mnt/boot
+mount -m -o umask=0077 "$ESP" /mnt/boot
 if [ -n "$SWAP" ]; then
 		swapon "$SWAP"
 fi
@@ -132,9 +132,6 @@ fi
 ROOT_UUID=$(blkid -s UUID -o value "$ROOT")
 echo "root=UUID=$ROOT_UUID rw quiet splash" > /etc/kernel/cmdline
 mkinitcpio -P
-
-# fstab umask
-sed -i '/\/boot/s/fmask=0022,dmask=0022/umask=0077/' /etc/fstab
 
 # удаляем скрипт после выполнения
 rm /root/setup-chroot.sh
