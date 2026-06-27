@@ -188,6 +188,8 @@ yay -S --noconfirm \
     brightnessctl ddcutil mpv \
     v4l2loopback-dkms amneziawg-dkms amneziawg-tools
 
+echo "Список установленных пакетов можно найти в моей инструкции" >> "$NOTES"
+
 # ---------- fish как основной шелл ----------
 echo "Настройка fish..."
 sudo chsh -s "$(command -v fish)" "$(whoami)"
