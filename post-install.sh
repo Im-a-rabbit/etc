@@ -33,30 +33,30 @@ read -p "Установить Limine и настроить dual-boot? (Y/n): " S
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
     read -p "  Найти и добавить Windows в меню Limine? (Y/n): " ADD_WIN
     read -p "  Установить Memtest86+? (Y/n): " ADD_MEMTEST
-		if [ ! -f ~/etc/limine ]; then
-				echo "Ошибка: ~/etc/limine не найден."
+		if [ ! -f ~/etc/post-conf/limine ]; then
+				echo "Ошибка: ~/etc/post-conf/limine не найден."
 				echo "Склонируйте репозиторий конфигов: git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc ~/etc"
 				exit 1
 		fi
 fi
 
 read -p "Настроить драйверы NVIDIA? (Y/n): " SETUP_NVIDIA
-if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]] && [ ! -f ~/etc/nvidia.conf ]; then
-    echo "Ошибка: ~/etc/nvidia.conf не найден."
+if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]] && [ ! -f ~/etc/post-conf/nvidia.conf ]; then
+    echo "Ошибка: ~/etc/post-conf/nvidia.conf не найден."
     echo "Склонируйте репозиторий конфигов: git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc ~/etc"
     exit 1
 fi
 
 read -p "Настроить Intel-undervolt и power-profiles? (Y/n): " SETUP_INTEL
-if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]] && [ ! -f ~/etc/intel-undervolt.conf ]; then
-    echo "Ошибка: ~/etc/intel-undervolt.conf не найден."
+if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]] && [ ! -f ~/etc/post-conf/intel-undervolt.conf ]; then
+    echo "Ошибка: ~/etc/post-conf/intel-undervolt.conf не найден."
     echo "Склонируйте репозиторий конфигов: git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc ~/etc"
     exit 1
 fi
 
 read -p "Настроить Bluetooth? (Y/n): " SETUP_BT
-if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]] && [ ! -f ~/etc/pipewire-bluetooth-autoconnect.service ]; then
-    echo "Ошибка: ~/etc/pipewire-bluetooth-autoconnect.service не найден."
+if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]] && [ ! -f ~/etc/post-conf/pipewire-bluetooth-autoconnect.service ]; then
+    echo "Ошибка: ~/etc/post-conf/pipewire-bluetooth-autoconnect.service не найден."
     echo "Склонируйте репозиторий конфигов: git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc ~/etc"
     exit 1
 fi
