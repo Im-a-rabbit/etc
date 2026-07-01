@@ -90,6 +90,7 @@ systemctl --user enable pipewire-pulse.service
 # ---------- Брандмауэр ----------
 echo "Настройка брандмауэра..."
 sudo ufw enable
+sudo systemctl enable ufw
 echo -e "Открывать порты можно так: sudo ufw allow 25565/tcp comment 'minecraft'\n" >> "$NOTES"
 
 # ---------- Bluetooth ----------
