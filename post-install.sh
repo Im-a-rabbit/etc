@@ -152,6 +152,9 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
     if [[ ! "$ADD_MEMTEST" =~ ^[Nn]$ ]]; then
         yay -S --needed --noconfirm memtest86+-efi
         sudo limine-entry-tool --add-efi Memtest /boot/memtest86+/memtest.efi
+				if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
+					sudo sbctl sign -s /boot/memtest86+/memtest.efi
+				fi
     fi
 		echo -e "\033[33mМожете удалить ненужную запись efibootmgr, \nесли создавали до этого: sudo efibootmgr -Bb <номер>\n" >> "$NOTES"
 		echo -e "Не забудьте настроить /boot/limine.conf\033[0m\n" >> "$NOTES"
