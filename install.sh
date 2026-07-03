@@ -2,6 +2,12 @@
 set -e
 setfont ter-u32b
 
+# ---------- проверка root ----------
+if (( EUID != 0 )); then
+    echo "Запустите скрипт от имени root."
+    exit 1
+fi
+
 # ---------- монтирование ----------
 if mountpoint -q /mnt; then
     echo "Ошибка: /mnt занят. Освободите /mnt и перезапустите скрипт."
