@@ -56,9 +56,9 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
 fi
 
 read -p "Настроить драйверы NVIDIA? [Y/n]: " SETUP_NVIDIA
-if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
-  require_file ~/etc/post-conf/nvidia.conf
-fi
+#if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
+#  require_file ~/etc/post-conf/nvidia.conf
+#fi
 
 read -p "Настроить Intel-undervolt и power-profiles? [Y/n]: " SETUP_INTEL
 if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
@@ -131,8 +131,8 @@ fi
 if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
   echo "Настройка драйверов NVIDIA..."
   yay -S --needed --noconfirm nvidia-open-dkms
-  sudo install -m 644 ~/etc/post-conf/nvidia.conf /etc/modprobe.d/
-  sudo sed -i 's/^MODULES=()/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
+  #sudo install -m 644 ~/etc/post-conf/nvidia.conf /etc/modprobe.d/
+  #sudo sed -i 's/^MODULES=()/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
   sudo mkinitcpio -P
 fi
 
