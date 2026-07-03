@@ -61,6 +61,9 @@ grep -q "^#WIRELESS_REGDOM=\"$REGDOM\"" /etc/conf.d/wireless-regdom || {
   exit 1
 }
 
+# systemd-networkd-wait-online.service.d/override.conf
+read -rp "Ожидать готовности любого сетевого интерфейса вместо ожидания всех? [Y/n]: " WAIT_ONLINE_ANY
+
 # часовой пояс
 read -rp "Часовой пояс [Europe/Moscow]: " TIMEZONE
 TIMEZONE=${TIMEZONE:-Europe/Moscow}
@@ -123,6 +126,10 @@ install -m 644 linux-zen.preset /etc/mkinitcpio.d/
 install -m 644 pacman.conf /etc/
 install -m 644 makepkg.conf /etc/
 install -m 644 network/* /etc/systemd/network/
+if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
+  install -Dm644 override.conf \
+    /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+fi
 cd ..
 rm -r early-conf
 cd /
@@ -164,6 +171,7 @@ arch-chroot /mnt env \
   USER_PASS="$USER_PASS" \
   ROOT="$ROOT" \
   REGDOM="$REGDOM" \
+  WAIT_ONLINE_ANY="$WAIT_ONLINE_ANY" \
   TIMEZONE="$TIMEZONE" \
   LANG_CHOICE="$LANG_CHOICE" \
   MARCH="$MARCH" \
