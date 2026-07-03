@@ -185,8 +185,8 @@ echo "Установка консольных утилит..."
 yay -S --needed --noconfirm \
     fish pkgfile fd ripgrep lsd \
     luarocks lua51 tree-sitter-cli \
-    fastfetch impala bluetui btop \
-    brightnessctl ddcutil mpv \
+    nodejs npm impala bluetui btop \
+    fastfetch brightnessctl ddcutil \
     v4l2loopback-dkms amneziawg-dkms amneziawg-tools
 
 echo -e "Список установленных пакетов можно найти в моей инструкции\n" >> "$NOTES"
