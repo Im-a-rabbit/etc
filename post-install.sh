@@ -77,13 +77,18 @@ read -rp "Git имя: " GIT_NAME
 read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_DOTFILES
 
 # ---------- AUR-помощник ----------
-echo "Установка yay..."
-git clone --depth=1 https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si --noconfirm
-cd ..
-rm -rf yay ~/.config/go
-go telemetry off || true
+if ! command -v yay >/dev/null 2>&1; then
+  echo "Установка yay..."
+  git clone --depth=1 https://aur.archlinux.org/yay.git
+  (
+    cd yay
+    makepkg -si --noconfirm
+  )
+  rm -rf yay ~/.config/go
+  go telemetry off || true
+else
+  echo "yay уже установлен."
+fi
 
 # ---------- основные пакеты ----------
 echo "Установка основных пакетов..."
