@@ -6,29 +6,29 @@
 
 ### Базовая система
 
-* Arch Linux
-* Linux Zen
-* Unified Kernel Image (UKI)
+- Arch Linux
+- Linux Zen
+- Unified Kernel Image (UKI)
 
 ### Сеть
 
-* systemd-networkd
-* systemd-resolved
-* iwd
+- systemd-networkd
+- systemd-resolved
+- iwd
 
 ### Загрузчик
 
-* Limine (опционально)
-* Secure Boot через sbctl (опционально)
+- Limine (опционально)
+- Secure Boot через sbctl (опционально)
 
 ### Дополнительное ПО
 
-* PipeWire
-* Fish
-* Neovim
-* UFW
-* NVIDIA Open Driver (опционально)
-* Intel Undervolt (опционально)
+- PipeWire
+- Fish
+- Neovim
+- UFW
+- NVIDIA Open Driver (опционально)
+- Intel Undervolt (опционально)
 
 ## Используемое программное обеспечение
 
@@ -38,9 +38,9 @@
 
 Перед началом необходимо:
 
-* загрузиться с официального установочного образа Arch Linux;
-* подключиться к Интернету;
-* подготовить разделы диска (ESP, корневой раздел и, при необходимости, раздел подкачки).
+- загрузиться с официального установочного образа Arch Linux;
+- подключиться к Интернету;
+- подготовить разделы диска (ESP, корневой раздел и, при необходимости, раздел подкачки).
 
 > Подробное руководство по подготовке и установке будет добавлено позже.
 
