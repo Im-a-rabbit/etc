@@ -4,7 +4,7 @@ trap 'umount -R /mnt 2>/dev/null || true' EXIT
 setfont ter-u32b
 
 # ---------- проверка root ----------
-if (( EUID != 0 )); then
+if ((EUID != 0)); then
   echo "Запустите скрипт от имени root."
   exit 1
 fi
@@ -18,10 +18,13 @@ if mountpoint -q /mnt/boot; then
   echo "Ошибка: /mnt/boot занят. Освободите /mnt/boot и перезапустите."
   exit 1
 fi
+
 read -rp "Корневой раздел (например /dev/nvme0n1p3): " ROOT
 mount "$ROOT" /mnt
+
 read -rp "ESP-раздел (например /dev/nvme0n1p1): " ESP
 mount -m -o umask=0077 "$ESP" /mnt/boot
+
 read -rp "Swap-раздел (пусто, если не нужен): " SWAP
 if [ -n "$SWAP" ]; then
   swapon "$SWAP"
@@ -38,8 +41,11 @@ echo
 # выбор микрокода
 select ucode_choice in "intel-ucode" "amd-ucode"; do
   case $ucode_choice in
-    "") echo "Неверный выбор";;
-    *) UCODE_PKG=$ucode_choice; break;;
+  "") echo "Неверный выбор" ;;
+  *)
+    UCODE_PKG=$ucode_choice
+    break
+    ;;
   esac
 done
 
@@ -47,9 +53,15 @@ done
 echo "Выберите архитектуру процессора:"
 select march_choice in "raptorlake" "native" "x86-64-v3" "x86-64-v4" "other"; do
   case $march_choice in
-    other) read -rp "Введите архитектуру (например znver4): " MARCH; break;;
-    "") echo "Неверный выбор";;
-    *) MARCH=$march_choice; break;;
+  other)
+    read -rp "Введите архитектуру (например znver4): " MARCH
+    break
+    ;;
+  "") echo "Неверный выбор" ;;
+  *)
+    MARCH=$march_choice
+    break
+    ;;
   esac
 done
 
@@ -89,10 +101,10 @@ pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
   pigz pbzip2 terminus-font plymouth nvim git less openssh bash-completion
 
 # ---------- fstab ----------
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >>/mnt/etc/fstab
 
 # ---------- chroot-скрипт ----------
-cat > /mnt/root/setup-chroot.sh << 'EOF'
+cat >/mnt/root/setup-chroot.sh <<'EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -120,19 +132,18 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 # клонирование и копирование конфигов
 su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc"
 cd /home/"$USERNAME"/etc/early-conf
-install -m 440 10-defaults /etc/sudoers.d/
-install -m 644 mkinitcpio.conf /etc/
-install -m 644 linux-zen.preset /etc/mkinitcpio.d/
-install -m 644 pacman.conf /etc/
-install -m 644 makepkg.conf /etc/
-install -m 644 network/* /etc/systemd/network/
+install -Dm 440 10-defaults /etc/sudoers.d/
+install -Dm 644 mkinitcpio.conf /etc/
+install -Dm 644 linux-zen.preset /etc/mkinitcpio.d/
+install -Dm 644 pacman.conf /etc/
+install -Dm 644 makepkg.conf /etc/
+install -Dm 644 network/* /etc/systemd/network/
 if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
   install -Dm644 override.conf \
     /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
 fi
-cd ..
-rm -r early-conf
 cd /
+rm -r /home/"$USERNAME"/etc/early-conf
 
 # правка makepkg.conf, если архитектура не raptorlake
 if [ "$MARCH" != "raptorlake" ]; then
