@@ -79,10 +79,10 @@ read -rp "Установить мои .dotfiles и настроить stow? [Y/n
 
 # ---------- установка rust ----------
 if [[ ! "$SET_RUSTUP" =~ ^[Nn]$ ]]; then
-  paru_install rustup
+  sudo pacman -S --needed --noconfirm rustup
   rustup default stable
 else
-  paru_install rust
+  sudo pacman -S --needed --noconfirm rust
 fi
 # ---------- AUR-помощник ----------
 if ! command -v paru >/dev/null 2>&1; then
@@ -215,7 +215,7 @@ note "Список установленных пакетов можно найт
 
 # ---------- fish как основной шелл ----------
 echo "Настройка fish..."
-chsh -s "$(command -v fish)" "$USER"
+sudo chsh -s "$(command -v fish)" "$USER"
 sudo chsh -s "$(command -v fish)" root
 
 # ---------- pkgfile ----------
