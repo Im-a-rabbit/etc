@@ -143,7 +143,7 @@ fi
 # ---------- специфичные драйверы ----------
 if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
   echo "Настройка драйверов NVIDIA..."
-  paru_install nvidia-open-dkms
+  paru_install nvidia-open-dkms libva-nvidia-driver opencl-nvidia
   # FIX: Ранняя загрузка модулей nvidia препятствует нормальному выходу из гибернации
   # sudo sed -i 's/^MODULES=()/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
   sudo mkinitcpio -P
@@ -209,7 +209,8 @@ paru_install \
   luarocks lua51 tree-sitter-cli \
   nodejs npm impala bluetui btop \
   fastfetch brightnessctl ddcutil \
-  v4l2loopback-dkms amneziawg-dkms amneziawg-tools
+  ffmpeg imagemagick v4l2loopback-dkms \
+  amneziawg-dkms amneziawg-tools
 
 note "Список установленных пакетов можно найти в моей инструкции.\n"
 
