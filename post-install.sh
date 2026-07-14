@@ -68,6 +68,7 @@ if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
 fi
 
 # ---------- вопросы ----------
+read -rp "Установить rustup вместо rust? [Y/n]: " SET_RUSTUP
 read -rp "Отключить watchdog? [Y/n]: " SET_WATCHDOG
 read -rp "Отключить пищалку (bell-style none в /etc/inputrc)? [Y/n]: " SET_BELL
 read -rp "Установить русские man-страницы (man-pages-ru)? [Y/n]: " SET_MAN_RU
@@ -76,23 +77,34 @@ read -rp "Git email: " GIT_EMAIL
 read -rp "Git имя: " GIT_NAME
 read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_DOTFILES
 
+# ---------- установка rust ----------
+if [[ ! "$SET_RUSTUP" =~ ^[Nn]$ ]]; then
+  paru_install rustup
+  rustup default stable
+else
+  paru_install rust
+fi
 # ---------- AUR-помощник ----------
-if ! command -v yay >/dev/null 2>&1; then
-  echo "Установка yay..."
-  git clone --depth=1 https://aur.archlinux.org/yay.git
+if ! command -v paru >/dev/null 2>&1; then
+  echo "Установка paru..."
+  git clone --depth=1 https://aur.archlinux.org/paru-git.git
   (
-    cd yay
+    cd paru-git
     makepkg -si --noconfirm
   )
-  rm -rf yay ~/.config/go
-  go telemetry off || true
+  rm -rf ~/paru-git
 else
-  echo "yay уже установлен."
+  echo "paru уже установлен."
 fi
+
+sudo install -Dm 644 ~/etc/post-conf/paru.conf /etc/
+paru_install() {
+  paru -S --failfast --needed --noconfirm "$@"
+}
 
 # ---------- основные пакеты ----------
 echo "Установка основных пакетов..."
-yay -S --needed --noconfirm plzip ntfs-3g alsa-utils ufw \
+paru_install plzip ntfs-3g alsa-utils ufw \
   pipewire{,-pulse,-jack,-alsa} wireplumber rtkit wiremix
 
 systemctl --user enable pipewire-pulse.service
@@ -106,7 +118,7 @@ note "Открывать порты можно так: sudo ufw allow 25565/tcp 
 # ---------- bluetooth ----------
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
   echo "Настройка Bluetooth..."
-  yay -S --needed --noconfirm bluez bluez-utils bluetooth-autoconnect
+  paru_install bluez bluez-utils bluetooth-autoconnect
   sudo systemctl enable --now bluetooth
   install -D ~/etc/post-conf/pipewire-bluetooth-autoconnect.service ~/.config/systemd/user/
   systemctl --user enable pipewire-bluetooth-autoconnect.service
@@ -131,7 +143,7 @@ fi
 # ---------- специфичные драйверы ----------
 if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
   echo "Настройка драйверов NVIDIA..."
-  yay -S --needed --noconfirm nvidia-open-dkms
+  paru_install nvidia-open-dkms
   # FIX: Ранняя загрузка модулей nvidia препятствует нормальному выходу из гибернации
   # sudo sed -i 's/^MODULES=()/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
   sudo mkinitcpio -P
@@ -139,7 +151,7 @@ fi
 
 if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
   echo "Настройка Intel-undervolt и power-profiles..."
-  yay -S --needed --noconfirm intel-undervolt power-profiles-daemon python-gobject
+  paru_install intel-undervolt power-profiles-daemon python-gobject
   sudo install -Dm 644 ~/etc/post-conf/intel-undervolt.conf /etc/
   sudo systemctl enable intel-undervolt.service
   note "Используйте powerprofilesctl get, чтобы узнать текущий профиль."
@@ -150,7 +162,7 @@ fi
 # ---------- загрузчик Limine и мультисистемность ----------
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   echo "Установка Limine..."
-  yay -S --needed --noconfirm limine-mkinitcpio-hook
+  paru_install limine-mkinitcpio-hook
   sudo install -Dm 644 ~/etc/post-conf/limine /etc/default/limine
 
   if [[ ! "$ADD_EFI" =~ ^[Nn]$ ]]; then
@@ -158,7 +170,7 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   fi
 
   if [[ ! "$ADD_MEMTEST" =~ ^[Nn]$ ]]; then
-    yay -S --needed --noconfirm memtest86+-efi
+    paru_install memtest86+-efi
     sudo limine-entry-tool --add-efi Memtest /boot/memtest86+/memtest.efi
     if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
       sudo sbctl sign -s /boot/memtest86+/memtest.efi
@@ -184,7 +196,7 @@ fi
 
 # ---------- русские man-страницы ----------
 if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
-  yay -S --needed --noconfirm man-pages-ru
+  paru_install man-pages-ru
   note "Используйте man с названием нужной статьи, если знаете его,"
   note "man -k для поиска совпадений в названии"
   note "и man -K для поиска внутри статей.\n"
@@ -192,7 +204,7 @@ fi
 
 # ---------- полезные TUI/CLI утилиты ----------
 echo "Установка консольных утилит..."
-yay -S --needed --noconfirm \
+paru_install \
   fish pkgfile fd ripgrep lsd bat \
   luarocks lua51 tree-sitter-cli \
   nodejs npm impala bluetui btop \
@@ -223,7 +235,7 @@ git config --global init.defaultBranch master
 # ---------- настройка .dotfiles ----------
 if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
   echo "Установка .dotfiles и stow..."
-  yay -S --needed --noconfirm stow
+  paru_install stow
   git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
   cd ~/.dotfiles
   rm -rf ~/.config/{btop,fastfetch,fish,nvim}
