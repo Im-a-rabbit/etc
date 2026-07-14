@@ -206,7 +206,7 @@ fi
 echo "Установка консольных утилит..."
 paru_install \
   fish pkgfile fd ripgrep lsd bat \
-  luarocks lua51 tree-sitter-cli \
+  luarocks lua-sec lua51 tree-sitter-cli \
   nodejs npm impala bluetui btop \
   fastfetch brightnessctl ddcutil \
   ffmpeg imagemagick v4l2loopback-dkms \
