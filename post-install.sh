@@ -104,7 +104,7 @@ paru_install() {
 
 # ---------- основные пакеты ----------
 echo "Установка основных пакетов..."
-paru_install plzip ntfs-3g alsa-utils ufw \
+paru_install plzip ntfs-3g ntfsprogs alsa-utils ufw \
   pipewire{,-pulse,-jack,-alsa} wireplumber rtkit wiremix
 
 systemctl --user enable pipewire-pulse.service
