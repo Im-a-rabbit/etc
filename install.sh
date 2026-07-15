@@ -89,7 +89,6 @@ grep -Eq "^#?$LANG_CHOICE UTF-8" /etc/locale.gen || {
 }
 
 # ---------- вопросы ----------
-read -rp "Использовать палитру Tokyo Night для TTY? [Y/n]: " SET_VTRGB
 read -rp "Имя компьютера: " HOSTNAME
 read -rp "Имя пользователя: " USERNAME
 read -rsp "Пароль root:" ROOT_PASS
@@ -139,6 +138,7 @@ su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit
 cd /home/"$USERNAME"/etc/early-conf
 install -Dm440 10-defaults /etc/sudoers.d/
 install -Dm644 mkinitcpio.conf /etc/
+install -Dm644 vtrgb /etc/vtrgb
 install -Dm644 linux-zen.preset /etc/mkinitcpio.d/
 install -Dm644 pacman.conf /etc/
 install -Dm644 makepkg.conf /etc/
@@ -147,14 +147,6 @@ install -Dm644 network/* /etc/systemd/network/
 if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
   install -Dm644 override.conf \
     /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
-fi
-if [[ ! "$SET_VTRGB" =~ ^[Nn]$ ]]; then
-  install -Dm644 vtrgb /etc/vtrgb
-  install -Dm644 initcpio/install /etc/initcpio/install/vtrgb
-  install -Dm644 initcpio/hook /etc/initcpio/hooks/vtrgb
-  sed -i "s/@VTRGB@/vtrgb/" /etc/mkinitcpio.conf
-else
-  sed -i "s/@VTRGB@//" /etc/mkinitcpio.conf
 fi
 cd /
 rm -r /home/"$USERNAME"/etc/early-conf
@@ -197,7 +189,6 @@ arch-chroot /mnt env \
   ROOT="$ROOT" \
   REGDOM="$REGDOM" \
   WAIT_ONLINE_ANY="$WAIT_ONLINE_ANY" \
-  SET_VTRGB="$SET_VTRGB" \
   TIMEZONE="$TIMEZONE" \
   LANG_CHOICE="$LANG_CHOICE" \
   MARCH="$MARCH" \
