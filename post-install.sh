@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 NOTES=$(mktemp)
-trap 'rm -f "$NOTES"' EXIT
+trap 'rm -rf "$NOTES" "$PWD/paru-git"' EXIT
 
 note() {
   printf "%b\n" "$1" >>"$NOTES"
@@ -24,7 +24,7 @@ fi
 
 # ---------- проверка сети ----------
 echo "Проверка соединения..."
-if ! ping -c 3 google.com; then
+if ! ping -c1 archlinux.org; then
   echo "Ошибка: нет интернета. Подключитесь к сети и перезапустите скрипт."
   exit 1
 fi
@@ -48,14 +48,14 @@ if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
 fi
 
 # ---------- проверка необходимых файлов ----------
+require_file ~/etc/post-conf/paru.conf
+
 read -rp "Установить Limine и настроить dual-boot? [Y/n]: " SETUP_LIMINE
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   read -rp "  Найти и добавить существующие .efi в меню Limine? [Y/n]: " ADD_EFI
   read -rp "  Установить Memtest86+? [Y/n]: " ADD_MEMTEST
   require_file ~/etc/post-conf/limine
 fi
-
-read -rp "Настроить драйверы NVIDIA? [Y/n]: " SETUP_NVIDIA
 
 read -rp "Настроить Intel-undervolt и power-profiles? [Y/n]: " SETUP_INTEL
 if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
@@ -68,6 +68,7 @@ if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
 fi
 
 # ---------- вопросы ----------
+read -rp "Настроить драйверы NVIDIA? [Y/n]: " SETUP_NVIDIA
 read -rp "Установить rustup вместо rust? [Y/n]: " SET_RUSTUP
 read -rp "Отключить watchdog? [Y/n]: " SET_WATCHDOG
 read -rp "Отключить пищалку (bell-style none в /etc/inputrc)? [Y/n]: " SET_BELL
@@ -84,6 +85,7 @@ if [[ ! "$SET_RUSTUP" =~ ^[Nn]$ ]]; then
 else
   sudo pacman -S --needed --noconfirm rust
 fi
+
 # ---------- AUR-помощник ----------
 if ! command -v paru >/dev/null 2>&1; then
   echo "Установка paru..."
@@ -92,7 +94,6 @@ if ! command -v paru >/dev/null 2>&1; then
     cd paru-git
     makepkg -si --noconfirm
   )
-  rm -rf ~/paru-git
 else
   echo "paru уже установлен."
 fi
@@ -104,9 +105,9 @@ paru_install() {
 
 # ---------- основные пакеты ----------
 echo "Установка основных пакетов..."
-paru_install plzip ntfs-3g ntfsprogs alsa-utils ufw \
-  pipewire{,-pulse,-jack,-alsa} wireplumber rtkit wiremix \
-  gst-plugin-pipewire
+paru_install plzip ntfs-3g ntfsprogs ufw alsa-utils \
+  pipewire{,-pulse,-jack,-alsa} wireplumber rtkit \
+  gst-plugin-pipewire wiremix
 
 systemctl --user enable pipewire-pulse.service
 
@@ -136,9 +137,12 @@ fi
 # ---------- Secure Boot ----------
 if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
   echo "Настройка Secure Boot..."
-  sudo sbctl create-keys
-  sudo sbctl enroll-keys -m
-  sudo mkinitcpio -P
+  if ! sbctl status | grep -q "Installed:.*✓"; then
+    sudo sbctl create-keys
+    sudo sbctl enroll-keys -m
+    sudo mkinitcpio -P
+  fi
+  note "\033[31mНе забудьте включить Secure Boot.\033[0m\n"
 fi
 
 # ---------- специфичные драйверы ----------
@@ -207,8 +211,7 @@ fi
 echo "Установка консольных утилит..."
 paru_install \
   fish pkgfile fd ripgrep lsd bat \
-  luarocks lua-sec lua51 \
-  tree-sitter-cli \
+  luarocks lua-sec lua51 tree-sitter-cli \
   nodejs npm impala bluetui btop \
   fastfetch brightnessctl ddcutil \
   ffmpeg imagemagick v4l2loopback-dkms \
@@ -239,7 +242,12 @@ git config --global init.defaultBranch master
 if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
   echo "Установка .dotfiles и stow..."
   paru_install stow
-  git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
+  if [ -d ~/.dotfiles/.git ]; then
+    git -C ~/.dotfiles pull --ff-only
+  else
+    rm -rf ~/.dotfiles
+    git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
+  fi
   cd ~/.dotfiles
   rm -rf ~/.config/{btop,fastfetch,fish,nvim}
   stow -vS btop fastfetch fish nvim
@@ -247,7 +255,7 @@ if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
 fi
 
 note "\033[32mВы можете использовать ~/etc/gui.sh, чтобы установить графическое окружение.\033[0m"
-note "\033[31mКрайне желательно перезагрузиться и включить Secure Boot.\033[0m"
+note "\033[31mКрайне желательно перезагрузиться.\033[0m"
 # ---------- завершение ----------
 rm -rf ~/etc/post-conf
 echo
