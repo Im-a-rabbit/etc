@@ -17,6 +17,7 @@ if mountpoint -q /mnt; then
   echo "Ошибка: /mnt занят. Освободите /mnt и перезапустите скрипт."
   exit 1
 fi
+
 if mountpoint -q /mnt/boot; then
   echo "Ошибка: /mnt/boot занят. Освободите /mnt/boot и перезапустите."
   exit 1
@@ -32,14 +33,6 @@ read -rp "Swap-раздел (пусто, если не нужен): " SWAP
 if [ -n "$SWAP" ]; then
   swapon "$SWAP"
 fi
-
-# ---------- вопросы ----------
-read -rp "Имя компьютера: " HOSTNAME
-read -rp "Имя пользователя: " USERNAME
-read -rsp "Пароль root:" ROOT_PASS
-echo
-read -rsp "Пароль $USERNAME:" USER_PASS
-echo
 
 # выбор микрокода
 select ucode_choice in "intel-ucode" "amd-ucode"; do
@@ -95,6 +88,15 @@ grep -Eq "^#?$LANG_CHOICE UTF-8" /etc/locale.gen || {
   exit 1
 }
 
+# ---------- вопросы ----------
+read -rp "Использовать палитру Tokyo Night для TTY? [Y/n]: " SET_VTRGB
+read -rp "Имя компьютера: " HOSTNAME
+read -rp "Имя пользователя: " USERNAME
+read -rsp "Пароль root:" ROOT_PASS
+echo
+read -rsp "Пароль $USERNAME:" USER_PASS
+echo
+
 # ---------- установка пакетов ----------
 reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
 sed -i 's/^.*ParallelDownloads.*/ParallelDownloads = 15/' /etc/pacman.conf
@@ -107,7 +109,7 @@ pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
 genfstab -U /mnt >/mnt/etc/fstab
 
 # ---------- chroot-скрипт ----------
-cat >/mnt/root/setup-chroot.sh <<'EOF'
+cat >/mnt/root/setup-chroot.sh <<EOF
 #!/bin/bash
 set -euo pipefail
 
@@ -135,16 +137,24 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 # клонирование и копирование конфигов
 su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc"
 cd /home/"$USERNAME"/etc/early-conf
-install -Dm 440 10-defaults /etc/sudoers.d/
-install -Dm 644 mkinitcpio.conf /etc/
-install -Dm 644 linux-zen.preset /etc/mkinitcpio.d/
-install -Dm 644 pacman.conf /etc/
-install -Dm 644 makepkg.conf /etc/
-install -Dm 644 env.sh /etc/profile.d/
-install -Dm 644 network/* /etc/systemd/network/
+install -Dm440 10-defaults /etc/sudoers.d/
+install -Dm644 mkinitcpio.conf /etc/
+install -Dm644 linux-zen.preset /etc/mkinitcpio.d/
+install -Dm644 pacman.conf /etc/
+install -Dm644 makepkg.conf /etc/
+install -Dm644 env.sh /etc/profile.d/
+install -Dm644 network/* /etc/systemd/network/
 if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
   install -Dm644 override.conf \
     /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+fi
+if [[ ! "$SET_VTRGB" =~ ^[Nn]$ ]]; then
+  install -Dm644 vtrgb /etc/vtrgb
+  install -Dm644 initcpio/install /etc/initcpio/install/vtrgb
+  install -Dm644 initcpio/hook /etc/initcpio/hooks/vtrgb
+  sed -i "s/@VTRGB@/vtrgb/" /etc/mkinitcpio.conf
+else
+  sed -i "s/@VTRGB@//" /etc/mkinitcpio.conf
 fi
 cd /
 rm -r /home/"$USERNAME"/etc/early-conf
@@ -187,6 +197,7 @@ arch-chroot /mnt env \
   ROOT="$ROOT" \
   REGDOM="$REGDOM" \
   WAIT_ONLINE_ANY="$WAIT_ONLINE_ANY" \
+  SET_VTRGB="$SET_VTRGB" \
   TIMEZONE="$TIMEZONE" \
   LANG_CHOICE="$LANG_CHOICE" \
   MARCH="$MARCH" \
@@ -195,8 +206,8 @@ arch-chroot /mnt env \
 # ---------- пост-chroot действия ----------
 read -rp "Добавить запись в UEFI для Arch? (Нужно, если на раздел уже ссылается какая-то запись) [y/N]: " ADD_UEFI
 if [[ "$ADD_UEFI" =~ ^[Yy]$ ]]; then
-  DISK="/dev/$(lsblk -no PARTN "$ESP")"
-  PART_NUM=$(echo "$ESP" | grep -o '[0-9]*$')
+  DISK="/dev/$(lsblk -no PKNAME "$ESP")"
+  PART_NUM=$(lsblk -no PARTN "$ESP")
   efibootmgr -c -d "$DISK" -p "$PART_NUM" -L "Arch Linux" -l /EFI/BOOT/BOOTX64.EFI -u
 fi
 

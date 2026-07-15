@@ -1,0 +1,3 @@
+run_hook() {
+  /usr/bin/setvtrgb /etc/vtrgb
+}

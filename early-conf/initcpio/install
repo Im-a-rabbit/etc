@@ -1,0 +1,8 @@
+build() {
+  add_binary /usr/bin/setvtrgb
+  add_file /etc/vtrgb
+}
+
+help() {
+  echo "Load Linux console color palette."
+}
