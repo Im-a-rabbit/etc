@@ -139,13 +139,14 @@ cd /home/"$USERNAME"/etc/early-conf
 install -Dm440 10-defaults /etc/sudoers.d/
 install -Dm644 mkinitcpio.conf /etc/
 install -Dm644 vtrgb /etc/vtrgb
+install -Dm644 vconsole-override.conf /etc/systemd/system/systemd-vconsole-setup.service.d/override.conf
 install -Dm644 linux-zen.preset /etc/mkinitcpio.d/
 install -Dm644 pacman.conf /etc/
 install -Dm644 makepkg.conf /etc/
 install -Dm644 env.sh /etc/profile.d/
-install -Dm644 network/* /etc/systemd/network/
+install -Dm644 network/*.network /etc/systemd/network/
 if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
-  install -Dm644 override.conf \
+  install -Dm644 network/override.conf \
     /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
 fi
 cd /
