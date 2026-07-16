@@ -105,7 +105,7 @@ pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
   pigz pbzip2 terminus-font plymouth nvim git less openssh bash-completion
 
 # ---------- fstab ----------
-genfstab -U /mnt > /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab
 
 # ---------- esp ----------
 if [ -f /mnt/boot/EFI/BOOT/BOOTX64.EFI ]; then
@@ -116,7 +116,7 @@ else
 fi
 
 # ---------- cmdline ----------
-echo "root=UUID=$(blkid -s UUID -o value '$ROOT') rw quiet splash" > /mnt/etc/kernel/cmdline
+echo "root=UUID=$(blkid -s UUID -o value \"$ROOT\") rw quiet splash" > /mnt/etc/kernel/cmdline
 
 # ---------- chroot-скрипт ----------
 cat >/mnt/root/setup-chroot.sh <<EOF
@@ -126,7 +126,6 @@ set -euo pipefail
 # время
 ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
 hwclock --systohc
-timedatectl set-timezone "$TIMEZONE"
 
 # локаль
 sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
