@@ -28,7 +28,8 @@ pkgs=(
   ffmpeg imagemagick v4l2loopback-dkms
   fish pkgfile fd ripgrep lsd bat
   impala bluetui btop fastfetch
-  brightnessctl ddcutil
+  brightnessctl ddcutil man-pages-ru
+
 )
 
 # ---------- проверки ----------
@@ -88,14 +89,6 @@ if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
 fi
 
 read -rp "Установить rustup вместо rust? [Y/n]: " SET_RUSTUP
-read -rp "Установить русские man-страницы (man-pages-ru)? [Y/n]: " SET_MAN_RU
-if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
-  pkgs+=(man-pages-ru)
-  note "Используйте man с названием нужной статьи, если знаете его,"
-  note "man -k для поиска совпадений в названии"
-  note "и man -K для поиска внутри статей.\n"
-fi
-
 read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_DOTFILES
 [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]] && pkgs+=(stow tree-sitter-cli python-pynvim npm)
 

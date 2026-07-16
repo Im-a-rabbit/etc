@@ -110,15 +110,12 @@ grep -Eq "^#?$LANG_CHOICE UTF-8" /etc/locale.gen || {
 }
 
 # ---------- вопросы ----------
-read -rp "Отключить watchdog (RebootWatchdogSec=0)? [Y/n]: " SET_WATCHDOG
-read -rp "Отключить пищалку (bell-style none в /etc/inputrc)? [Y/n]: " SET_BELL
 read -rp "Имя компьютера: " HOSTNAME
 read -rp "Имя пользователя: " USERNAME
 read -rsp "Пароль $USERNAME:" USER_PASS
 echo
 read -rsp "Пароль root:" ROOT_PASS
 echo
-read -rp "Заблокировать вход по паролю для root? [Y/n]: " SET_ROOT
 
 # ---------- установка пакетов ----------
 reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
@@ -198,9 +195,9 @@ systemctl enable paccache.timer
 systemctl enable gpm
 ufw enable
 systemctl enable ufw
-[[ ! "$SET_WATCHDOG" =~ ^[Nn]$ ]] && sed -i 's/^.*RebootWatchdogSec=.*/RebootWatchdogSec=0/' /etc/systemd/system.conf
-[[ ! "$SET_BELL" =~ ^[Nn]$ ]] && sed -i 's/^.*set bell-style none/set bell-style none/' /etc/inputrc
-[[ ! "$SET_ROOT" =~ ^[Nn]$ ]] && passwd -l root
+sed -i 's/^.*RebootWatchdogSec=.*/RebootWatchdogSec=0/' /etc/systemd/system.conf
+sed -i 's/^.*set bell-style none/set bell-style none/' /etc/inputrc
+passwd -l root
 
 # UKI
 mkinitcpio -P
