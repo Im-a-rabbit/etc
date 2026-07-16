@@ -211,14 +211,13 @@ fi
 # ---------- полезные TUI/CLI утилиты ----------
 echo "Установка консольных утилит..."
 paru_install \
-  fish pkgfile fd ripgrep lsd bat gpm \
+  fish pkgfile fd ripgrep lsd bat \
   zip unzip tree-sitter-cli python-pynvim \
   npm impala bluetui btop \
   fastfetch brightnessctl ddcutil \
   ffmpeg imagemagick v4l2loopback-dkms \
   amneziawg-dkms amneziawg-tools
 
-sudo systemctl enable gpm
 note "Список установленных пакетов можно найти в моей инструкции.\n"
 
 # ---------- fish как основной шелл ----------
