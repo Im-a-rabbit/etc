@@ -99,11 +99,11 @@ reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
 sed -i 's/^.*ParallelDownloads.*/ParallelDownloads = 15/' /etc/pacman.conf
 
 pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
-  systemd-resolvconf iwd wireless-regdb polkit axel mold pacman-contrib \
-  pigz pbzip2 terminus-font plymouth nvim git less openssh bash-completion gpm
+  kernel-modules-hook systemd-resolvconf iwd wireless-regdb polkit axel mold pigz pbzip2 \
+  pacman-contrib terminus-font plymouth nvim git less openssh bash-completion gpm
 
 # ---------- fstab ----------
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >>/mnt/etc/fstab
 
 # ---------- esp ----------
 if [ -f /mnt/boot/EFI/BOOT/BOOTX64.EFI ]; then
@@ -114,7 +114,7 @@ else
 fi
 
 # ---------- cmdline ----------
-echo "root=UUID=$(blkid -s UUID -o value $ROOT) rw quiet splash" > /mnt/etc/kernel/cmdline
+echo "root=UUID=$(blkid -s UUID -o value $ROOT) rw quiet splash" >/mnt/etc/kernel/cmdline
 
 # ---------- chroot ----------
 arch-chroot /mnt /bin/bash <<EOF
