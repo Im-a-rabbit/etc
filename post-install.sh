@@ -55,6 +55,7 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   read -rp "  Найти и добавить существующие .efi в меню Limine? [Y/n]: " ADD_EFI
   read -rp "  Установить Memtest86+? [Y/n]: " ADD_MEMTEST
   require_file ~/etc/post-conf/limine
+  require_file ~/etc/post-conf/bg.png
 fi
 
 read -rp "Настроить Intel-undervolt и power-profiles? [Y/n]: " SETUP_INTEL
@@ -170,6 +171,7 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   echo "Установка Limine..."
   paru_install limine-mkinitcpio-hook
   sudo install -Dm644 ~/etc/post-conf/limine /etc/default/limine
+  sudo install -m700 ~/etc/post-conf/bg.png /boot/
 
   if [[ ! "$ADD_EFI" =~ ^[Nn]$ ]]; then
     sudo limine-scan
