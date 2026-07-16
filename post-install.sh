@@ -85,7 +85,7 @@ fi
 read -rp "Настроить Bluetooth? [Y/n]: " SETUP_BT
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
   require_file ~/etc/post-conf/pipewire-bluetooth-autoconnect.service
-  pkgs+=(bluez bluez-utils bluetooth-autoconnect)
+  pkgs+=(bluez bluez-utils bluetooth-autoconnect) # TODO: написать свой autoconnect
 fi
 
 read -rp "Установить rustup вместо rust? [Y/n]: " SET_RUSTUP
