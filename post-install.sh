@@ -16,13 +16,29 @@ require_file() {
   fi
 }
 
-# ---------- проверка root ----------
+# ---------- пакеты ----------
+pkgs=(
+  plzip ntfs-3g ntfsprogs zip unzip
+  pipewire{,-pulse,-jack,-alsa}
+  wireplumber rtkit
+  alsa-utils gstreamer gst-libav
+  gst-plugin-pipewire
+  gst-plugins-{base,good,bad,ugly}
+  gst-plugin-va wiremix
+  ffmpeg imagemagick v4l2loopback-dkms
+  fish pkgfile fd ripgrep lsd bat
+  impala bluetui btop fastfetch
+  brightnessctl ddcutil
+)
+
+# ---------- проверки ----------
 if ((EUID == 0)); then
   echo "Не запускайте post-install от root."
   exit 1
 fi
 
-# ---------- проверка сети ----------
+require_file ~/etc/post-conf/paru.conf
+
 echo "Проверка соединения..."
 if ! ping -c1 archlinux.org; then
   echo "Ошибка: нет интернета. Подключитесь к сети и перезапустите скрипт."
@@ -33,6 +49,13 @@ fi
 echo "Обновление системы..."
 sudo pacman -Syu --noconfirm
 sudo timedatectl set-ntp true
+
+# ---------- СВОбода? ----------
+read -rp "Использовать AWG для скачивания пакетов? [Y/n]: " SETUP_AWG
+if [[ ! "$SETUP_AWG" =~ ^[Nn]$ && ! -f ~/etc/awg0.conf ]]; then
+  echo -e "\033[31mСкопируйте ваш конфиг awg в ~/etc/awg0.conf и перезапустите скрипт\033[0m"
+  exit 0
+fi
 
 # ---------- проверка Secure Boot Setup Mode ----------
 read -rp "Настроить Secure Boot? [Y/n]: " SETUP_SB
@@ -47,37 +70,37 @@ if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
   echo "Secure Boot Setup Mode активен."
 fi
 
-# ---------- проверка необходимых файлов ----------
-require_file ~/etc/post-conf/paru.conf
-
+# ---------- вопросы ----------
 read -rp "Установить Limine и настроить dual-boot? [Y/n]: " SETUP_LIMINE
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
-  read -rp "  Найти и добавить существующие .efi в меню Limine? [Y/n]: " ADD_EFI
-  read -rp "  Установить Memtest86+? [Y/n]: " ADD_MEMTEST
   require_file ~/etc/post-conf/limine
   require_file ~/etc/post-conf/bg.png
-fi
-
-read -rp "Настроить Intel-undervolt и power-profiles? [Y/n]: " SETUP_INTEL
-if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
-  require_file ~/etc/post-conf/intel-undervolt.conf
+  pkgs+=(limine-mkinitcpio-hook)
+  read -rp "  Найти и добавить существующие .efi в меню Limine? [Y/n]: " ADD_EFI
+  read -rp "  Установить Memtest86+? [Y/n]: " ADD_MEMTEST
+  [[ ! "$ADD_MEMTEST" =~ ^[Nn]$ ]] && pkgs+=(memtest86+-efi)
 fi
 
 read -rp "Настроить Bluetooth? [Y/n]: " SETUP_BT
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
   require_file ~/etc/post-conf/pipewire-bluetooth-autoconnect.service
+  pkgs+=(bluez bluez-utils bluetooth-autoconnect)
 fi
 
-# ---------- вопросы ----------
-read -rp "Настроить драйверы NVIDIA? [Y/n]: " SETUP_NVIDIA
 read -rp "Установить rustup вместо rust? [Y/n]: " SET_RUSTUP
-read -rp "Отключить watchdog? [Y/n]: " SET_WATCHDOG
-read -rp "Отключить пищалку (bell-style none в /etc/inputrc)? [Y/n]: " SET_BELL
 read -rp "Установить русские man-страницы (man-pages-ru)? [Y/n]: " SET_MAN_RU
-read -rp "Заблокировать вход по паролю для root? [Y/n]: " SET_ROOT
+if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
+  pkgs+=(man-pages-ru)
+  note "Используйте man с названием нужной статьи, если знаете его,"
+  note "man -k для поиска совпадений в названии"
+  note "и man -K для поиска внутри статей.\n"
+fi
+
+read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_DOTFILES
+[[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]] && pkgs+=(stow tree-sitter-cli python-pynvim npm)
+
 read -rp "Git email: " GIT_EMAIL
 read -rp "Git имя: " GIT_NAME
-read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_DOTFILES
 
 # ---------- установка rust ----------
 if [[ ! "$SET_RUSTUP" =~ ^[Nn]$ ]]; then
@@ -100,40 +123,41 @@ else
 fi
 
 sudo install -Dm644 ~/etc/post-conf/paru.conf /etc/
-paru_install() {
-  paru -S --failfast --needed --noconfirm "$@"
-}
 
-# ---------- основные пакеты ----------
-echo "Установка основных пакетов..."
-paru_install plzip ntfs-3g ntfsprogs ufw alsa-utils \
-  pipewire{,-pulse,-jack,-alsa} wireplumber rtkit \
-  gstreamer gst-libav gst-plugin-pipewire \
-  gst-plugins-{base,good,bad,ugly} gst-plugin-va wiremix
+# ---------- СВОбода ----------
+if [[ ! "$SETUP_AWG" =~ ^[Nn]$ ]]; then
+  paru -S --failfast --needed --noconfirm amneziawg-{dkms,tools}
+  sudo install -Dm600 ~/etc/awg0.conf /etc/amnezia/amneziawg/awg0.conf
+  sudo systemctl enable awg-quick@awg0
+  sudo awg-quick up awg0
+else
+  pkgs+=(amneziawg-{dkms,tools})
+fi
 
+# ---------- установка пакетов ----------
+echo "Установка пакетов..."
+paru -S --failfast --needed --noconfirm "${pkgs[@]}"
+
+# ---------- дополнительные настройки ----------
 systemctl --user enable pipewire-pulse.service
-
-# ---------- брандмауэр ----------
-echo "Настройка брандмауэра..."
-sudo ufw enable
-sudo systemctl enable ufw
-note "Открывать порты можно так: sudo ufw allow 25565/tcp comment 'minecraft'\n"
+echo "Настройка fish..."
+sudo chsh -s "$(command -v fish)" "$USER"
+sudo chsh -s "$(command -v fish)" root
+echo "Настройка pkgfile..."
+sudo pkgfile -u
+sudo systemctl enable pkgfile-update.timer
+echo "Настройка git..."
+install -Dm644 ~/etc/post-conf/git ~/.config/git/config
+git config --global user.email "$GIT_EMAIL"
+git config --global user.name "$GIT_NAME"
 
 # ---------- bluetooth ----------
 if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
   echo "Настройка Bluetooth..."
-  paru_install bluez bluez-utils bluetooth-autoconnect
   sudo systemctl enable --now bluetooth
   install -Dm644 ~/etc/post-conf/pipewire-bluetooth-autoconnect.service ~/.config/systemd/user/
   systemctl --user enable pipewire-bluetooth-autoconnect.service
   sudo systemctl enable bluetooth-autoconnect.service
-fi
-
-# ---------- безопасность ----------
-if [[ ! "$SET_ROOT" =~ ^[Nn]$ ]]; then
-  echo "Блокировка root-пароля..."
-  sudo passwd -l root
-  note "Чтобы разблокировать root, используйте: sudo passwd -u root\n"
 fi
 
 # ---------- Secure Boot ----------
@@ -147,32 +171,12 @@ if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
   note "\033[31mНе забудьте включить Secure Boot.\033[0m\n"
 fi
 
-# ---------- специфичные драйверы ----------
-if [[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]]; then
-  echo "Настройка драйверов NVIDIA..."
-  paru_install nvidia-open-dkms libva-nvidia-driver opencl-nvidia
-  # FIX: Ранняя загрузка модулей nvidia препятствует нормальному выходу из гибернации
-  # sudo sed -i 's/^MODULES=()/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
-  sudo mkinitcpio -P
-fi
-
-if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
-  echo "Настройка Intel-undervolt и power-profiles..."
-  paru_install intel-undervolt power-profiles-daemon python-gobject
-  sudo install -Dm644 ~/etc/post-conf/intel-undervolt.conf /etc/
-  sudo systemctl enable intel-undervolt.service
-  note "Используйте powerprofilesctl get, чтобы узнать текущий профиль."
-  note "powerprofilesctl set power-saver|balanced|performance, чтобы выставить.\n"
-  note "Изменить лимиты питания можно в /etc/intel-undervolt.conf\n"
-fi
-
 # ---------- загрузчик Limine и мультисистемность ----------
 if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   echo "Установка Limine..."
   sudo install -Dm644 ~/etc/post-conf/limine /etc/default/limine
   sudo install -m700 ~/etc/post-conf/bg.png /boot/
-  paru_install limine-mkinitcpio-hook
-  sudo sed -E '                                                                                                                                                     Чт 16 июл 2026 16:41:03
+  sudo sed -E '
     /^### (Read more at config document:.*|Theme|.*hash mismatch|Hide Limine|Boot the default entry)$/d
     /^### Auto-generated by limine-entry-tool:/{N;d}
     /^#default_entry: <OS name>\/<kernel name>$/d
@@ -182,12 +186,9 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
     /^#interface_help_color:/a\wallpaper: boot():/bg.png
   ' /boot/limine.conf
 
-  if [[ ! "$ADD_EFI" =~ ^[Nn]$ ]]; then
-    sudo limine-scan
-  fi
+  [[ ! "$ADD_EFI" =~ ^[Nn]$ ]] && sudo limine-scan
 
   if [[ ! "$ADD_MEMTEST" =~ ^[Nn]$ ]]; then
-    paru_install memtest86+-efi
     sudo limine-entry-tool --add-efi Memtest /boot/memtest86+/memtest.efi
     if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
       sudo sbctl sign -s /boot/memtest86+/memtest.efi
@@ -198,76 +199,21 @@ if [[ ! "$SETUP_LIMINE" =~ ^[Nn]$ ]]; then
   note "Не забудьте настроить /boot/limine.conf\033[0m\n"
 fi
 
-# ---------- отключение пищалки ----------
-if [[ ! "$SET_BELL" =~ ^[Nn]$ ]]; then
-  sudo sed -i 's/^.*set bell-style none/set bell-style none/' /etc/inputrc
-  echo "Пищалка отключена в /etc/inputrc"
-fi
-
-# ---------- watchdog ----------
-if [[ ! "$SET_WATCHDOG" =~ ^[Nn]$ ]]; then
-  echo "Отключение watchdog..."
-  sudo sed -i 's/^.*RebootWatchdogSec=.*/RebootWatchdogSec=0/' /etc/systemd/system.conf
-  echo "RebootWatchdogSec установлен в 0."
-fi
-
-# ---------- русские man-страницы ----------
-if [[ ! "$SET_MAN_RU" =~ ^[Nn]$ ]]; then
-  paru_install man-pages-ru
-  note "Используйте man с названием нужной статьи, если знаете его,"
-  note "man -k для поиска совпадений в названии"
-  note "и man -K для поиска внутри статей.\n"
-fi
-
-# ---------- полезные TUI/CLI утилиты ----------
-echo "Установка консольных утилит..."
-paru_install \
-  fish pkgfile fd ripgrep lsd bat \
-  zip unzip tree-sitter-cli python-pynvim \
-  npm impala bluetui btop \
-  fastfetch brightnessctl ddcutil \
-  ffmpeg imagemagick v4l2loopback-dkms \
-  amneziawg-dkms amneziawg-tools
-
-sudo npm install -g neovim
-note "Список установленных пакетов можно найти в моей инструкции.\n"
-
-# ---------- fish как основной шелл ----------
-echo "Настройка fish..."
-sudo chsh -s "$(command -v fish)" "$USER"
-sudo chsh -s "$(command -v fish)" root
-
-# ---------- pkgfile ----------
-echo "Настройка pkgfile..."
-sudo pkgfile -u
-sudo systemctl enable pkgfile-update.timer
-
-# ---------- настройка git ----------
-echo "Настройка git..."
-install -Dm644 ~/etc/post-conf/git ~/.config/git/config
-git config --global user.email "$GIT_EMAIL"
-git config --global user.name "$GIT_NAME"
-
 # ---------- настройка .dotfiles ----------
 if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
   echo "Установка .dotfiles и stow..."
-  paru_install stow
-  if [ -d ~/.dotfiles/.git ]; then
-    git -C ~/.dotfiles pull --ff-only
-  else
-    rm -rf ~/.dotfiles
-    git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
-  fi
+  rm -rf ~/.dotfiles
+  git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
   cd ~/.dotfiles
   rm -rf ~/.config/{btop,fastfetch,fish,nvim}
   stow -vS btop fastfetch fish nvim
+  sudo npm install -g neovim
   note "Подробности конфигураций можно узнать в моей инструкции.\n"
 fi
 
 note "\033[32mВы можете использовать ~/etc/gui.sh, чтобы установить графическое окружение.\033[0m"
 note "\033[31mКрайне желательно перезагрузиться.\033[0m"
 # ---------- завершение ----------
-rm -rf ~/etc/post-conf
 echo
 echo "======================= Советы по дальнейшей настройке ======================="
 cat "$NOTES"

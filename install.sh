@@ -6,6 +6,18 @@ umount -R /mnt 2>/dev/null || true
 ' EXIT
 setfont ter-u32b
 
+# ---------- пакеты ----------
+pkgs=(
+  base{,-devel}
+  linux-{zen,zen-headers,firmware}
+  kernel-modules-hook mold pigz pbzip2
+  systemd-resolvconf iwd wireless-regdb
+  ufw axel pacman-contrib
+  terminus-font plymouth
+  polkit nvim git less
+  openssh bash-completion gpm
+)
+
 # ---------- проверка root ----------
 if ((EUID != 0)); then
   echo "Запустите скрипт от имени root."
@@ -37,7 +49,7 @@ select ucode_choice in "intel-ucode" "amd-ucode"; do
   case $ucode_choice in
   "") echo "Неверный выбор" ;;
   *)
-    UCODE_PKG=$ucode_choice
+    pkgs+=("$ucode_choice")
     break
     ;;
   esac
@@ -58,6 +70,17 @@ select march_choice in "raptorlake" "native" "x86-64-v3" "x86-64-v4" "other"; do
     ;;
   esac
 done
+
+# Видеодрайвер
+read -rp "Настроить драйверы NVIDIA? [Y/n]: " SETUP_NVIDIA
+[[ ! "$SETUP_NVIDIA" =~ ^[Nn]$ ]] && pkgs+=(nvidia-open-dkms libva-nvidia-driver opencl-nvidia)
+# FIX: Ранняя загрузка модулей nvidia препятствует нормальному выходу из гибернации
+
+# CPU Power
+read -rp "Настроить power-profiles? [Y/n]: " SETUP_PWP
+[[ ! "$SETUP_PWP" =~ ^[Nn]$ ]] && pkgs+=(power-profiles-daemon python-gobject)
+read -rp "Настроить Intel-undervolt? [Y/n]: " SETUP_INTEL
+[[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]] && pkgs+=(intel-undervolt)
 
 # регион wireless-regdb
 read -rp "Регион для wireless-regdb [RU]: " REGDOM
@@ -87,34 +110,34 @@ grep -Eq "^#?$LANG_CHOICE UTF-8" /etc/locale.gen || {
 }
 
 # ---------- вопросы ----------
+read -rp "Отключить watchdog (RebootWatchdogSec=0)? [Y/n]: " SET_WATCHDOG
+read -rp "Отключить пищалку (bell-style none в /etc/inputrc)? [Y/n]: " SET_BELL
 read -rp "Имя компьютера: " HOSTNAME
 read -rp "Имя пользователя: " USERNAME
-read -rsp "Пароль root:" ROOT_PASS
-echo
 read -rsp "Пароль $USERNAME:" USER_PASS
 echo
+read -rsp "Пароль root:" ROOT_PASS
+echo
+read -rp "Заблокировать вход по паролю для root? [Y/n]: " SET_ROOT
 
 # ---------- установка пакетов ----------
 reflector -c RU -l 10 --sort rate --save /etc/pacman.d/mirrorlist
 sed -i 's/^.*ParallelDownloads.*/ParallelDownloads = 15/' /etc/pacman.conf
-
-pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
-  kernel-modules-hook systemd-resolvconf iwd wireless-regdb polkit axel mold pigz pbzip2 \
-  pacman-contrib terminus-font plymouth nvim git less openssh bash-completion gpm
+pacstrap -K /mnt "${pkgs[@]}"
 
 # ---------- fstab ----------
 genfstab -U /mnt >>/mnt/etc/fstab
 
 # ---------- esp ----------
 if [ -f /mnt/boot/EFI/BOOT/BOOTX64.EFI ]; then
-  mv /mnt/boot/EFI/BOOT/bootx64{,_win}.efi
-  echo "Резервный загрузчик Windows переименован в bootx64_win.efi"
+  mv /mnt/boot/EFI/BOOT/bootx64{,_old}.efi
+  echo "Резервный загрузчик переименован в bootx64_old.efi"
 else
   mkdir -p /mnt/boot/EFI/BOOT
 fi
 
 # ---------- cmdline ----------
-echo "root=UUID=$(blkid -s UUID -o value $ROOT) rw quiet splash" >/mnt/etc/kernel/cmdline
+echo "root=UUID=$(blkid -s UUID -o value "$ROOT") rw quiet splash" >/mnt/etc/kernel/cmdline
 
 # ---------- chroot ----------
 arch-chroot /mnt /bin/bash <<EOF
@@ -126,9 +149,7 @@ hwclock --systohc
 
 # локаль
 sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-if [ "$LANG_CHOICE" != "en_US.UTF-8" ]; then
-  sed -i "s/^#${LANG_CHOICE} UTF-8/${LANG_CHOICE} UTF-8/" /etc/locale.gen
-fi
+[ "$LANG_CHOICE" != "en_US.UTF-8" ] && sed -i "s/^#${LANG_CHOICE} UTF-8/${LANG_CHOICE} UTF-8/" /etc/locale.gen
 locale-gen
 echo "LANG=$LANG_CHOICE" > /etc/locale.conf
 echo -e "KEYMAP=ruwin_alt_sh-UTF-8\nFONT=ter-u22b" > /etc/vconsole.conf
@@ -142,26 +163,26 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 # клонирование и копирование конфигов
 su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit/etc"
-cd /home/"$USERNAME"/etc/early-conf
-install -Dm440 10-defaults /etc/sudoers.d/
-install -Dm644 mkinitcpio.conf /etc/
-install -Dm644 vtrgb /etc/vtrgb
-install -Dm644 vconsole-override.conf /etc/systemd/system/systemd-vconsole-setup.service.d/override.conf
-install -Dm644 linux-zen.preset /etc/mkinitcpio.d/
-install -Dm644 pacman.conf /etc/
-install -Dm644 makepkg.conf /etc/
-install -Dm644 env.sh /etc/profile.d/
-install -Dm644 network/*.network /etc/systemd/network/
-if [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]]; then
-  install -Dm644 network/override.conf \
-    /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
-fi
-cd /
+(
+  cd /home/"$USERNAME"/etc/early-conf
+  install -Dm440 10-defaults /etc/sudoers.d/
+  install -Dm644 mkinitcpio.conf /etc/
+  install -Dm644 vtrgb /etc/vtrgb
+  install -Dm644 vconsole-override.conf /etc/systemd/system/systemd-vconsole-setup.service.d/override.conf
+  install -Dm644 linux-zen.preset /etc/mkinitcpio.d/
+  install -Dm644 pacman.conf /etc/
+  install -Dm644 makepkg.conf /etc/
+  install -Dm644 env.sh /etc/profile.d/
+  install -Dm644 network/*.network /etc/systemd/network/
+  [[ ! "$WAIT_ONLINE_ANY" =~ ^[Nn]$ ]] && install -Dm644 network/override.conf /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+  if [[ ! "$SETUP_INTEL" =~ ^[Nn]$ ]]; then
+    install -Dm644 intel-undervolt.conf /etc/
+    systemctl enable intel-undervolt.service
+  fi
+)
 
 # правка makepkg.conf, если архитектура не raptorlake
-if [ "$MARCH" != "raptorlake" ]; then
-  sed -i "s/raptorlake/$MARCH/g" /etc/makepkg.conf
-fi
+[ "$MARCH" != "raptorlake" ] && sed -i "s/raptorlake/$MARCH/g" /etc/makepkg.conf
 
 # сеть
 systemctl enable iwd systemd-networkd systemd-resolved
@@ -171,6 +192,11 @@ sed -i "s/^#WIRELESS_REGDOM=\"$REGDOM\"/WIRELESS_REGDOM=\"$REGDOM\"/" /etc/conf.
 rm -f /boot/*.img
 systemctl enable paccache.timer
 systemctl enable gpm
+ufw enable
+systemctl enable ufw
+[[ ! "$SET_WATCHDOG" =~ ^[Nn]$ ]] && sed -i 's/^.*RebootWatchdogSec=.*/RebootWatchdogSec=0/' /etc/systemd/system.conf
+[[ ! "$SET_BELL" =~ ^[Nn]$ ]] && sed -i 's/^.*set bell-style none/set bell-style none/' /etc/inputrc
+[[ ! "$SET_ROOT" =~ ^[Nn]$ ]] && passwd -l root
 
 # UKI
 mkinitcpio -P
