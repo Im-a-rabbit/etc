@@ -100,7 +100,7 @@ sed -i 's/^.*ParallelDownloads.*/ParallelDownloads = 15/' /etc/pacman.conf
 
 pacstrap -K /mnt base{,-devel} linux-{zen,zen-headers,firmware} "$UCODE_PKG" \
   systemd-resolvconf iwd wireless-regdb polkit axel mold pacman-contrib \
-  pigz pbzip2 terminus-font plymouth nvim git less openssh bash-completion
+  pigz pbzip2 terminus-font plymouth nvim git less openssh bash-completion gpm
 
 # ---------- fstab ----------
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -170,6 +170,7 @@ sed -i "s/^#WIRELESS_REGDOM=\"$REGDOM\"/WIRELESS_REGDOM=\"$REGDOM\"/" /etc/conf.
 # дополнительно
 rm -f /boot/*.img
 systemctl enable paccache.timer
+systemctl enable gpm
 
 # UKI
 mkinitcpio -P
