@@ -220,6 +220,7 @@ paru_install \
   ffmpeg imagemagick v4l2loopback-dkms \
   amneziawg-dkms amneziawg-tools
 
+sudo npm install -g neovim
 note "Список установленных пакетов можно найти в моей инструкции.\n"
 
 # ---------- fish как основной шелл ----------
