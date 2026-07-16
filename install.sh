@@ -2,7 +2,7 @@
 set -euo pipefail
 trap '
 umount -R /mnt 2>/dev/null || true
-swapoff {"$SWAP":-} 2>/dev/null || true
+[[ -n "${SWAP:-}" ]] && swapoff "$SWAP" 2>/dev/null || true
 ' EXIT
 setfont ter-u32b
 
