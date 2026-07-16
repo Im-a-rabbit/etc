@@ -39,6 +39,7 @@ pkgs=(
   gparted
   nwg-look
   dconf-editor
+  papirus-icon-theme
   kitty
   openbsd-netcat
   elephant
@@ -54,19 +55,21 @@ pkgs=(
   telegram-desktop
 )
 
-read -rp "Установить мои .dotfiles и настроить stow? [Y/n]: " SET_SOL
+read -rp "Установить solaar? [Y/n]: " SET_SOL
 [[ ! "$SET_SOL" =~ ^[Nn]$ ]] && pkgs+=(solaar)
+
+paru -S --needed --noconfirm --failfast "${pkgs[@]}"
 
 if [[ ! -f ~/.config/user-dirs.locale || $(<~/.config/user-dirs.locale) != C ]]; then
   LC_ALL=C.UTF-8 xdg-user-dirs-update --force
 fi
 
-paru -S --needed --noconfirm --failfast "${pkgs[@]}"
 curl -fsSL https://github.com/zen-browser/updates-server/raw/refs/heads/main/install.sh | bash
 
 gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty
 
 sudo systemctl enable sddm
+systemctl enable --user waybar swaync
 
 (
   cd ~/.dotfiles/
