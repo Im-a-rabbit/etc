@@ -109,7 +109,7 @@ echo "Установка основных пакетов..."
 paru_install plzip ntfs-3g ntfsprogs ufw alsa-utils \
   pipewire{,-pulse,-jack,-alsa} wireplumber rtkit \
   gstreamer gst-libav gst-plugin-pipewire \
-  gst-plugins-{base,good,bad,ugly} wiremix
+  gst-plugins-{base,good,bad,ugly} gst-plugin-va wiremix
 
 systemctl --user enable pipewire-pulse.service
 
