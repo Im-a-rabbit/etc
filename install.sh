@@ -179,11 +179,11 @@ su "$USERNAME" -c "cd && git clone --depth=1 https://git.postmodernist.ru/Rabbit
     install -Dm644 intel-undervolt.conf /etc/
     systemctl enable intel-undervolt.service
   fi
-  mkdir /usr/share/plymouth/themes/
+  mkdir -p /usr/share/plymouth/themes/
   tar --zstd --no-same-owner -xf \
     glow-slide.tar.zst \
     -C /usr/share/plymouth/themes
-   plymouth-set-default-theme glow-slide
+  plymouth-set-default-theme glow-slide
 )
 
 # правка makepkg.conf, если архитектура не raptorlake
