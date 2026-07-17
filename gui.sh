@@ -66,8 +66,6 @@ fi
 
 curl -fsSL https://github.com/zen-browser/updates-server/raw/refs/heads/main/install.sh | bash
 
-gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty
-
 sudo systemctl enable sddm
 systemctl enable --user waybar swaync
 
@@ -80,3 +78,7 @@ systemctl enable --user waybar swaync
     stow -vS solaar
   fi
 )
+rm -rf ~/.config/go/
+go telemetry off
+dconf load / <~/.config/nwg-look/dconf.ini
+nwg-look -x
