@@ -134,7 +134,7 @@ else
 fi
 
 # ---------- cmdline ----------
-echo "root=UUID=$(blkid -s UUID -o value "$ROOT") rw quiet splash" >/mnt/etc/kernel/cmdline
+echo "root=UUID=$(blkid -s UUID -o value "$ROOT") rw quiet splash loglevel=3" >/mnt/etc/kernel/cmdline
 
 # ---------- chroot ----------
 arch-chroot /mnt /bin/bash <<EOF
