@@ -43,6 +43,8 @@ pkgs=(
   file-roller
   gparted
   xorg-xhost
+  exfatprogs
+  dosfstools
   nwg-look
   dconf-editor
   papirus-icon-theme
