@@ -42,6 +42,7 @@ pkgs=(
   sushi
   file-roller
   gparted
+  xorg-xhost
   nwg-look
   dconf-editor
   papirus-icon-theme
