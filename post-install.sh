@@ -204,9 +204,11 @@ if [[ ! "$SET_DOTFILES" =~ ^[Nn]$ ]]; then
   echo "Установка .dotfiles и stow..."
   rm -rf ~/.dotfiles
   git clone --depth=1 https://git.postmodernist.ru/Rabbit/.dotfiles ~/.dotfiles
-  cd ~/.dotfiles
-  rm -rf ~/.config/{btop,fastfetch,fish,nvim}
-  stow -vS btop fastfetch fish nvim
+  (
+    cd ~/.dotfiles
+    rm -rf ~/.config/{btop,fastfetch,fish,nvim}
+    stow -vS btop fastfetch fish nvim
+  )
   sudo npm install -g neovim
   note "Подробности конфигураций можно узнать в моей инструкции.\n"
 fi
