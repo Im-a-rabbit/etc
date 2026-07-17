@@ -59,6 +59,7 @@ pkgs=(
   elephant-providerlist
   elephant-websearch
   elephant-wireplumber
+  elephant-calc
   nvidia-settings
   speech-dispatcher
   telegram-desktop
