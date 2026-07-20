@@ -101,6 +101,7 @@ go telemetry off
 
 dconf load / <~/.config/nwg-look/dconf.ini
 nwg-look -x
+sudo install -Dm644 ~/.config/gtk-3.0/settings.ini /etc/gtk-3.0/
 papirus-folders -C teal --theme Papirus-Dark
 
 (
