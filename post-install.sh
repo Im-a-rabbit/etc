@@ -52,8 +52,8 @@ sudo pacman -Syu --noconfirm
 sudo timedatectl set-ntp true
 
 # ---------- СВОбода? ----------
-read -rp "Использовать AWG для скачивания пакетов? [Y/n]: " SETUP_AWG
-if [[ ! "$SETUP_AWG" =~ ^[Nn]$ && ! -f ~/etc/awg0.conf ]]; then
+read -rp "Использовать AWG для скачивания пакетов? [y/N]: " SETUP_AWG
+if [[ ! "$SETUP_AWG" =~ ^[Yy]$ && ! -f ~/etc/awg0.conf ]]; then
   echo -e "\033[31mСкопируйте ваш конфиг awg в ~/etc/awg0.conf и перезапустите скрипт\033[0m"
   exit 0
 fi
@@ -118,7 +118,7 @@ fi
 sudo install -Dm644 ~/etc/post-conf/paru.conf /etc/
 
 # ---------- СВОбода ----------
-if [[ ! "$SETUP_AWG" =~ ^[Nn]$ ]]; then
+if [[ ! "$SETUP_AWG" =~ ^[Yy]$ ]]; then
   paru -S --failfast --needed --noconfirm amneziawg-{dkms,tools}
   sudo install -Dm600 ~/etc/awg0.conf /etc/amnezia/amneziawg/awg0.conf
   sudo awg-quick up awg0
