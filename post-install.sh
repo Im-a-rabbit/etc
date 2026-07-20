@@ -58,7 +58,7 @@ if [[ ! "$SETUP_AWG" =~ ^[Yy]$ && ! -f ~/etc/awg0.conf ]]; then
   exit 0
 fi
 
-# ---------- проверка Secure Boot Setup Mode ----------
+# ---------- Secure Boot Setup ----------
 read -rp "Настроить Secure Boot? [Y/n]: " SETUP_SB
 if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
   echo "Проверка статуса Secure Boot..."
@@ -67,8 +67,16 @@ if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
     echo "Ошибка: Secure Boot Setup Mode не активен."
     echo "Включите его в BIOS (обычно 'Setup Mode' или 'Clear Secure Boot Keys') и перезапустите скрипт."
     exit 1
+  else
+    echo "Secure Boot Setup Mode активен."
+    echo "Настройка Secure Boot..."
+    if ! sbctl status | grep -q "Installed:.*✓"; then
+      sudo sbctl create-keys
+      sudo sbctl enroll-keys -m
+      sudo mkinitcpio -P
+    fi
+    note "\033[31mНе забудьте включить Secure Boot.\033[0m\n"
   fi
-  echo "Secure Boot Setup Mode активен."
 fi
 
 # ---------- вопросы ----------
@@ -159,17 +167,6 @@ if [[ ! "$SETUP_BT" =~ ^[Nn]$ ]]; then
   install -Dm644 ~/etc/post-conf/pipewire-bluetooth-autoconnect.service ~/.config/systemd/user/
   systemctl --user enable pipewire-bluetooth-autoconnect.service
   sudo systemctl enable bluetooth-autoconnect.service
-fi
-
-# ---------- Secure Boot ----------
-if [[ ! "$SETUP_SB" =~ ^[Nn]$ ]]; then
-  echo "Настройка Secure Boot..."
-  if ! sbctl status | grep -q "Installed:.*✓"; then
-    sudo sbctl create-keys
-    sudo sbctl enroll-keys -m
-    sudo mkinitcpio -P
-  fi
-  note "\033[31mНе забудьте включить Secure Boot.\033[0m\n"
 fi
 
 # ---------- загрузчик Limine и мультисистемность ----------
