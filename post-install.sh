@@ -26,10 +26,9 @@ pkgs=(
   gst-plugins-{base,good,bad,ugly}
   gst-plugin-va wiremix
   ffmpeg imagemagick v4l2loopback-dkms
-  fish pkgfile fd ripgrep lsd bat
+  fish pkgfile fd ripgrep lsd bat sshfs
   impala bluetui btop fastfetch
   brightnessctl ddcutil man-pages-ru
-
 )
 
 # ---------- проверки ----------
