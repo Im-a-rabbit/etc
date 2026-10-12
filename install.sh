@@ -192,6 +192,7 @@ sed -i "s/^#WIRELESS_REGDOM=\"$REGDOM\"/WIRELESS_REGDOM=\"$REGDOM\"/" /etc/conf.
 # дополнительно
 rm -f /boot/*.img
 systemctl enable paccache.timer
+systemctl enable linux-modules-cleanup.service
 systemctl enable gpm
 ufw enable
 systemctl enable ufw
