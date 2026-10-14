@@ -26,7 +26,7 @@ mountpoint -q /mnt/boot && die "/mnt/boot занят. Освободите /mnt/
 
 # ---------- подготовка chroot-скрипта ----------
 # TODO: зафиксировать на тег.
-CHROOT_URL="https://git.postmodernist.ru/Rabbit/etc/raw/branch/main/chroot-setup.sh"
+CHROOT_URL="https://git.postmodernist.ru/Rabbit/etc/raw/branch/master/chroot-setup.sh"
 curl -fsSL "$CHROOT_URL" -o /tmp/chroot-setup.sh || die "не удалось скачать chroot-setup.sh."
 
 # ---------- выбор разделов ----------
