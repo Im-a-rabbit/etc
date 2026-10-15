@@ -18,7 +18,8 @@ require_file() {
 
 # ---------- пакеты ----------
 pkgs=(
-  plzip ntfs-3g ntfsprogs zip unzip
+  #plzip
+  ntfs-3g ntfsprogs zip unzip
   pipewire{,-pulse,-jack,-alsa}
   wireplumber rtkit
   alsa-utils gstreamer gst-libav
