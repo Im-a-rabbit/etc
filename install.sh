@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 setfont ter-u32b
+export LC_ALL=C
+export LANG=C
 
 die() {
   echo "Ошибка: $*" >&2
