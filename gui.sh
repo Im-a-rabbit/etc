@@ -13,6 +13,8 @@ pkgs=(
   qt6-svg
   qt6-multimedia
   qt6-multimedia-ffmpeg
+  webkit2gtk-4.1
+  webkit2gtk-6.0
   polkit-gnome # TODO: написать свое
   libappindicator
   xdg-desktop-portal-gtk
@@ -68,7 +70,6 @@ pkgs=(
   speech-dispatcher
   ayugram-desktop
   meld
-  libreoffice-fresh-ru
 )
 
 read -rp "Установить solaar? [Y/n]: " SET_SOL
